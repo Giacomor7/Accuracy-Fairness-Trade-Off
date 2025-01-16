@@ -2,7 +2,6 @@ import folktables
 import numpy as np
 import pandas as pd
 from aif360.datasets import StandardDataset
-from folktables import ACSDataSource
 
 from data_download import download_data, employment_filter
 
