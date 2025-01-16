@@ -2,8 +2,10 @@ import folktables
 import numpy as np
 import pandas as pd
 from aif360.datasets import StandardDataset
+from sklearn.model_selection import train_test_split
 
 from data_download import download_data, employment_filter
+from train_test_split import split_data
 
 if __name__ == "__main__":
     ACSEmployment = folktables.BasicProblem(
@@ -38,6 +40,9 @@ if __name__ == "__main__":
         data = pd.read_csv('employment_data.csv')
     except FileNotFoundError:
         data = download_data(ACSEmployment)
+
+    train_train_datasets, train_val_datasets, test = split_data(data)
+
 
     # Define fairness - related groups
     favorable_classes = [True]
