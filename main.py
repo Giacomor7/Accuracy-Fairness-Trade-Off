@@ -2,10 +2,8 @@ import folktables
 import numpy as np
 import pandas as pd
 from aif360.datasets import StandardDataset
-from sklearn.model_selection import train_test_split
 
 from data_download import download_data, employment_filter
-from preprocessing import preprocess
 from train_test_split import split_data
 
 if __name__ == "__main__":
@@ -41,8 +39,6 @@ if __name__ == "__main__":
         data = pd.read_csv('employment_data.csv')
     except FileNotFoundError:
         data = download_data(ACSEmployment)
-
-    preprocessed_data = preprocess(data)
 
     # train_train and train_val are lists containing 5 dataframes each
     # test is a single dataframe
