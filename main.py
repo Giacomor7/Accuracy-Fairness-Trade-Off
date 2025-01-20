@@ -5,6 +5,7 @@ from aif360.datasets import StandardDataset
 from sklearn.model_selection import train_test_split
 
 from data_download import download_data, employment_filter
+from preprocessing import preprocess
 from train_test_split import split_data
 
 if __name__ == "__main__":
@@ -41,6 +42,10 @@ if __name__ == "__main__":
     except FileNotFoundError:
         data = download_data(ACSEmployment)
 
+    preprocessed_data = preprocess(data)
+
+    # train_train and train_val are lists containing 5 dataframes each
+    # test is a single dataframe
     train_train_datasets, train_val_datasets, test = split_data(data)
 
 
