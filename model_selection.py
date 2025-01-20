@@ -15,17 +15,13 @@ def xg_boost(x, y):
     return xgb
 
 
-def training(data, model_choice):
+def training(x, y, model_choice):
     """
     Train chosen model on supplied dataset
     :param data: training data
     :param model_choice: string - 'rf' or 'xgb'
     :return: trained model
     """
-    y = data.loc["label"]
-    data.drop("label", axis=1, inplace=True)
-    x = data
-
     if model_choice == 'rf':
         return random_forest(x, y)
     elif model_choice == 'xgb':

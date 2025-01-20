@@ -4,6 +4,8 @@ import pandas as pd
 from aif360.datasets import StandardDataset
 
 from data_download import download_data, employment_filter
+from evaluation import calculate_accuracy
+from model_selection import training
 from train_test_split import split_data
 
 if __name__ == "__main__":
@@ -43,6 +45,30 @@ if __name__ == "__main__":
     # train_train and train_val are lists containing 5 dataframes each
     # test is a single dataframe
     train_train_datasets, train_val_datasets, test = split_data(data)
+
+    xgboost_results = []
+    rf_results = []
+
+    for i in range(5):
+        train_dataset_i = train_train_datasets[i]
+        train_labels = train_dataset_i['label']
+        train_dataset_i.drop(['label'], axis=1, inplace=True)
+
+        xgboost = training(train_dataset_i, train_labels,'xgb')
+        rf = training(train_dataset_i, train_labels, 'rf')
+
+        val_dataset_i = train_val_datasets[i]
+        labels = val_dataset_i['label']
+        val_dataset_i.drop('label', axis=1, inplace=True)
+
+        xgboost_predictions = xgboost.predict(val_dataset_i)
+        rf_predictions = rf.predict(val_dataset_i)
+
+        xgboost_results.append(calculate_accuracy(xgboost_predictions, labels))
+        rf_results.append(calculate_accuracy(rf_predictions, labels))
+
+    print("xgboost mean accuracy: ", np.mean(xgboost_results))
+    print("rf mean accuracy: ", np.mean(rf_results))
 
 
     # Define fairness - related groups
