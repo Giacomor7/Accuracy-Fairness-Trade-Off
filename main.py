@@ -5,11 +5,12 @@ from aif360.datasets import StandardDataset
 
 from data_download import download_data, employment_filter
 from get_baseline import get_baseline
+from hyperparameter_tuning import hyperparameter_tuning
 from train_test_split import split_data
 
 if __name__ == "__main__":
-    # ['get_baseline']
-    task = 'get_baseline'
+    # ['get_baseline', 'hyperparameter_tuning']
+    task = 'hyperparameter_tuning'
 
     ACSEmployment = folktables.BasicProblem(
         features=[
@@ -44,13 +45,16 @@ if __name__ == "__main__":
     except FileNotFoundError:
         data = download_data(ACSEmployment)
 
+    # train_dataset is a single dataframe
     # train_train and train_val are lists containing 5 dataframes each
     # test is a single dataframe
-    train_train_datasets, train_val_datasets, test = split_data(data)
+    train_dataset, train_train_datasets, train_val_datasets, test = split_data(data)
 
     match task:
         case 'get_baseline':
             get_baseline(train_train_datasets, train_val_datasets)
+        case 'hyperparameter_tuning':
+            hyperparameter_tuning(train_dataset)
 
 
 

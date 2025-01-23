@@ -11,4 +11,4 @@ def split_data(data):
         train_train_datasets.append(train_train)
         train_val_datasets.append(train_val)
 
-    return train_train_datasets, train_val_datasets, test
+    return train, train_train_datasets, train_val_datasets, test
