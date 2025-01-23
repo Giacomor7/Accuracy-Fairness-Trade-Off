@@ -18,7 +18,8 @@ def xg_boost(x, y):
 def training(x, y, model_choice):
     """
     Train chosen model on supplied dataset
-    :param data: training data
+    :param x: training examples
+    :param y: training labels
     :param model_choice: string - 'rf' or 'xgb'
     :return: trained model
     """
