@@ -1,8 +1,8 @@
 import optuna
 import xgboost as xgb
-from sklearn.model_selection import train_test_split
-from sklearn.datasets import load_breast_cancer
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
 
 
 def hyperparameter_tuning(data):
@@ -46,10 +46,28 @@ def hyperparameter_tuning(data):
         accuracy = accuracy_score(y_valid, preds_binary)
         return accuracy
 
+    def random_forest_accuracy_objective(trial):
+        # Suggest hyperparameter values
+        n_estimators = trial.suggest_int("n_estimators", 50, 500)
+        max_depth = trial.suggest_int("max_depth", 5, 30)
+
+        # Create and train the Random Forest model
+        model = RandomForestClassifier(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            random_state=42
+        )
+        model.fit(x_train, y_train)
+
+        # Predict and calculate accuracy
+        y_pred = model.predict(x_valid)
+        accuracy = accuracy_score(y_valid, y_pred)
+        return accuracy
+
     # Create a study
     study = optuna.create_study(direction="maximize")
-    # Optimize the study
-    study.optimize(xg_boost_accuracy_objective, n_trials=50)
+    # Optimize the study against functions above
+    study.optimize(random_forest_accuracy_objective, n_trials=50)
 
     # Print the best parameters and score
     print("Best parameters:", study.best_params)
