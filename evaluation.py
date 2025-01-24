@@ -1,7 +1,7 @@
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
 import pandas as pd
+import xgboost as xgb
+from sklearn.ensemble import RandomForestClassifier
 
 
 def calculate_accuracy(predictions: np.ndarray, labels: np.ndarray) -> float:
@@ -22,6 +22,18 @@ def calculate_accuracy(predictions: np.ndarray, labels: np.ndarray) -> float:
     total = len(labels)
     accuracy = correct / total
     return accuracy
+
+
+def demographic_parity_difference(y_pred, sa):
+    """
+    Calculates the Demographic Parity Difference (DPD).
+    """
+    sa_0 = y_pred[sa == 1]
+    sa_1 = y_pred[sa == 2]
+    rate_0 = np.mean(sa_0)
+    rate_1 = np.mean(sa_1)
+    return abs(rate_0 - rate_1)
+
 
 def calculate_demographic_parity_difference(predictions,
                                                 sensitive_attribute,
@@ -72,21 +84,31 @@ def evaluation(train, test):
     test.drop(['label'], axis=1, inplace=True)
 
     if model == 'xgboost':
-        xgb = XGBClassifier(objective='binary:logistic', random_state=420,
-                            eta=0.12355187904055383, max_depth=10)
-        xgb.fit(train, y_train)
+        dtrain = xgb.DMatrix(train, label=y_train)
+        dtest = xgb.DMatrix(test, label=y_test)
 
-        predictions = xgb.predict(test)
+        # XGBoost parameters
+        params = {
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "eta": 0.12355187904055383,
+            "max_depth": 10,
+            "use_label_encoder": False,
+        }
+
+        model = xgb.train(params, dtrain)
+
+        predictions = model.predict(dtest) > 0.5  # Binary predictions
     elif model == 'rf':
         rf = RandomForestClassifier(n_estimators=153, random_state=420,
                                     oob_score=True, max_depth=13)
         rf.fit(train, y_train)
 
-        predictions = rf.predict(test)
+        predictions = rf.predict(test) > 0.5
     accuracy = calculate_accuracy(predictions, y_test)
-    demographic_parity_difference = calculate_demographic_parity_difference(
+    dpd = demographic_parity_difference(
         predictions, test['DIS'])
 
-    print(f"Accuracy: {accuracy}. DPD: {demographic_parity_difference}")
+    print(f"Accuracy: {accuracy}. DPD: {dpd}")
 
 
