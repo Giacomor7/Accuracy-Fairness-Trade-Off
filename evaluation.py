@@ -104,7 +104,7 @@ def evaluation(train, test):
                                     oob_score=True, max_depth=13)
         rf.fit(train, y_train)
 
-        predictions = rf.predict(test) > 0.5
+        predictions = rf.predict(test)
     accuracy = calculate_accuracy(predictions, y_test)
     dpd = demographic_parity_difference(
         predictions, test['DIS'])
