@@ -4,13 +4,14 @@ import pandas as pd
 from aif360.datasets import StandardDataset
 
 from data_download import download_data, employment_filter
+from evaluation import evaluation
 from get_baseline import get_baseline
 from hyperparameter_tuning import hyperparameter_tuning
 from train_test_split import split_data
 
 if __name__ == "__main__":
-    # ['get_baseline', 'hyperparameter_tuning']
-    task = 'hyperparameter_tuning'
+    # ['get_baseline', 'hyperparameter_tuning', 'evaluation']
+    task = 'evaluation'
 
     ACSEmployment = folktables.BasicProblem(
         features=[
@@ -55,6 +56,9 @@ if __name__ == "__main__":
             get_baseline(train_train_datasets, train_val_datasets)
         case 'hyperparameter_tuning':
             hyperparameter_tuning(train_dataset)
+        case 'evaluation':
+            evaluation(train_dataset, test)
+
 
 
 
