@@ -75,7 +75,7 @@ def calculate_demographic_parity_difference(predictions,
 
 
 def evaluation(train, test):
-    model = 'rf'
+    model = 'xgboost'
 
     y_train = train['label']
     y_test = test['label']
@@ -91,8 +91,8 @@ def evaluation(train, test):
         params = {
             "objective": "binary:logistic",
             "eval_metric": "logloss",
-            "eta": 0.12355187904055383,
-            "max_depth": 10,
+            "eta": 0.2932425687600753,
+            "max_depth": 9,
             "use_label_encoder": False,
         }
 
@@ -100,8 +100,8 @@ def evaluation(train, test):
 
         predictions = model.predict(dtest) > 0.5  # Binary predictions
     elif model == 'rf':
-        rf = RandomForestClassifier(n_estimators=153, random_state=420,
-                                    oob_score=True, max_depth=13)
+        rf = RandomForestClassifier(n_estimators=100, random_state=420,
+                                    oob_score=True, max_depth=20)
         rf.fit(train, y_train)
 
         predictions = rf.predict(test)
