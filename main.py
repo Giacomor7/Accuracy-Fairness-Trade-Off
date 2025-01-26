@@ -49,7 +49,8 @@ if __name__ == "__main__":
     # train_dataset is a single dataframe
     # train_train and train_val are lists containing 5 dataframes each
     # test is a single dataframe
-    train_dataset, train_train_datasets, train_val_datasets, test = split_data(data)
+    train_dataset, train_train_datasets, train_val_datasets, test = split_data(
+        data)
 
     match task:
         case 'get_baseline':
