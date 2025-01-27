@@ -1,11 +1,12 @@
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
-from fair_training import fair_training
+from fair_training import xgboost_fair_training, random_forest_fair_training
+
 
 def random_forest(x, y, fairness_aware):
     if fairness_aware:
-        rf = fair_training(x, y, True)
+        rf = random_forest_fair_training(x, y)
     else:
         rf = RandomForestClassifier(n_estimators=100, oob_score=True,
                                     random_state=123456)
@@ -15,7 +16,7 @@ def random_forest(x, y, fairness_aware):
 
 def xg_boost(x, y, fairness_aware):
     if fairness_aware:
-        xgboost = fair_training(x, y)
+        xgboost = xgboost_fair_training(x, y)
     else:
         xgboost = XGBClassifier(objective='binary:logistic', random_state=420)
         xgboost.fit(x, y)
