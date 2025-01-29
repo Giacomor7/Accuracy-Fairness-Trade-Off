@@ -8,12 +8,13 @@ from data_download import download_data, employment_filter
 from evaluation import evaluation
 from get_baseline import get_baseline
 from hyperparameter_tuning import hyperparameter_tuning
+from other_states import other_states
 from train_test_split import split_data
 
 if __name__ == "__main__":
     # ['get_baseline', 'hyperparameter_tuning', 'evaluation',
-    # 'find_correlations']
-    task = 'evaluation'
+    # 'find_correlations', 'other_states']
+    task = 'other_states'
 
     ACSEmployment = folktables.BasicProblem(
         features=[
@@ -63,6 +64,8 @@ if __name__ == "__main__":
             evaluation(train_dataset, test)
         case 'find_correlations':
             find_correlations(data)
+        case 'other_states':
+            other_states(train_dataset, ACSEmployment)
 
 
 
