@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from aif360.datasets import StandardDataset
 
+from correlations import find_correlations
 from data_download import download_data, employment_filter
 from evaluation import evaluation
 from get_baseline import get_baseline
@@ -10,8 +11,9 @@ from hyperparameter_tuning import hyperparameter_tuning
 from train_test_split import split_data
 
 if __name__ == "__main__":
-    # ['get_baseline', 'hyperparameter_tuning', 'evaluation']
-    task = 'evaluation'
+    # ['get_baseline', 'hyperparameter_tuning', 'evaluation',
+    # 'find_correlations']
+    task = 'find_correlations'
 
     ACSEmployment = folktables.BasicProblem(
         features=[
@@ -59,7 +61,8 @@ if __name__ == "__main__":
             hyperparameter_tuning(train_dataset)
         case 'evaluation':
             evaluation(train_dataset, test)
-
+        case 'find_correlations':
+            find_correlations(data)
 
 
 
