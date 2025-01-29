@@ -89,39 +89,3 @@ def evaluation(train, test):
 
     print(f"Accuracy: {accuracy}. DPD: {dpd}")
 
-"""
-Best hyperparameters:
-
-Tuned for accuracy:
-XGB:
-Best parameters: {'eta': 0.12355187904055383, 'max_depth': 10}
-RF:
-Best parameters: {'n_estimators': 153, 'max_depth': 13}
-
-For fairness:
-XGB:
-Best parameters: {'eta': 0.2932425687600753, 'max_depth': 9}
-RF:
-Best parameters: {'n_estimators': 100, 'max_depth': 20}
-
-Fair models (after reweighing):
-
-Tuned for accuracy:
-XGB:
-Best parameters: {'eta': 0.07624482588186494, 'max_depth': 10}
-RF:
-Best parameters: {'n_estimators': 397, 'max_depth': 18}
-
-Tuned for fairness:
-RF:
-Best parameters: {'n_estimators': 354, 'max_depth': 9}
-XGB:
-Best parameters: {'eta': 0.016117651313141638, 'max_depth': 8}
-
-Tuned for balance:
-XGB:
-Best parameters: {'eta': 0.2908419486944403, 'max_depth': 4}
-RF:
-Best parameters: {'n_estimators': 286, 'max_depth': 10}
-"""
-
