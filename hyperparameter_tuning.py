@@ -5,6 +5,8 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 
+from fair_training import xgboost_fair_training, random_forest_fair_training
+
 
 def hyperparameter_tuning(data):
     x_train, x_valid = train_test_split(data, test_size=0.3)
@@ -142,10 +144,166 @@ def hyperparameter_tuning(data):
         return dpd
 
 
-    # Create a study (maximise accuracy / minimise DPD)
-    study = optuna.create_study(direction="minimize")
+    def fair_xgboost_accuracy_objective(trial):
+        # Suggest values for eta and max_depth
+        eta = trial.suggest_float("eta", 0.01, 0.3,
+                                  log=True)  # Log scale for learning rate
+        max_depth = trial.suggest_int("max_depth", 3, 10)
+
+        # Define XGBoost parameters
+        params = {
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "eta": eta,
+            "max_depth": max_depth,
+            "use_label_encoder": False,
+        }
+
+        dvalid = xgb.DMatrix(x_valid, label=y_valid)
+        model = xgboost_fair_training(x_train, y_train, dvalid=dvalid,
+                                      **params)
+
+        # Predict and calculate accuracy
+        preds = model.predict(dvalid)
+        preds_binary = (preds > 0.5).astype(int)
+        accuracy = accuracy_score(y_valid, preds_binary)
+        return accuracy
+
+
+    def fair_random_forest_accuracy_objective(trial):
+        # Suggest hyperparameter values
+        n_estimators = trial.suggest_int("n_estimators", 50, 500)
+        max_depth = trial.suggest_int("max_depth", 5, 30)
+
+        params = {
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "random_state": 42,
+        }
+        model = random_forest_fair_training(x_train, y_train, **params)
+
+        # Predict and calculate accuracy
+        y_pred = model.predict(x_valid)
+        accuracy = accuracy_score(y_valid, y_pred)
+        return accuracy
+
+
+    def fair_random_forest_fairness_objective(trial):
+        # Suggest hyperparameter values
+        n_estimators = trial.suggest_int("n_estimators", 50, 500)
+        max_depth = trial.suggest_int("max_depth", 5, 30)
+
+        params = {
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "random_state": 42,
+        }
+        model = random_forest_fair_training(x_train, y_train, **params)
+
+        # Predictions
+        y_pred = model.predict(x_valid)
+
+        # Calculate DPD
+        dpd = demographic_parity_difference(y_pred, sa_valid)
+
+        # Handle NaN values
+        if np.isnan(dpd):
+            return 1.0  # Large penalty for invalid trials
+
+        return dpd
+
+
+    def fair_xgboost_fairness_objective(trial):
+        # Suggest values for eta and max_depth
+        eta = trial.suggest_float("eta", 0.01, 0.3,
+                                  log=True)  # Log scale for learning rate
+        max_depth = trial.suggest_int("max_depth", 3, 10)
+
+        # Define XGBoost parameters
+        params = {
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "eta": eta,
+            "max_depth": max_depth,
+            "use_label_encoder": False,
+        }
+
+        dvalid = xgb.DMatrix(x_valid, label=y_valid)
+        model = xgboost_fair_training(x_train, y_train, dvalid=dvalid,
+                                      **params)
+
+        # Predictions for the validation set
+        y_pred = model.predict(dvalid) > 0.5  # Binary predictions
+
+        # Calculate demographic parity difference
+        dpd = demographic_parity_difference(y_pred, sa_valid)
+        return dpd
+
+
+    def fair_xgboost_balanced_objective(trial):
+        # Suggest values for eta and max_depth
+        eta = trial.suggest_float("eta", 0.01, 0.3,
+                                  log=True)  # Log scale for learning rate
+        max_depth = trial.suggest_int("max_depth", 3, 10)
+
+        # Define XGBoost parameters
+        params = {
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "eta": eta,
+            "max_depth": max_depth,
+            "use_label_encoder": False,
+        }
+
+        dvalid = xgb.DMatrix(x_valid, label=y_valid)
+        model = xgboost_fair_training(x_train, y_train, dvalid=dvalid,
+                                      **params)
+
+        # Predictions for the validation set
+        y_pred = model.predict(dvalid) > 0.5  # Binary predictions
+
+        # Calculate demographic parity difference
+        dpd = demographic_parity_difference(y_pred, sa_valid)
+
+        # Predict and calculate accuracy
+        preds = model.predict(dvalid)
+        preds_binary = (preds > 0.5).astype(int)
+        accuracy = accuracy_score(y_valid, preds_binary)
+        return accuracy - dpd
+
+
+    def fair_random_forest_balanced_objective(trial):
+        # Suggest hyperparameter values
+        n_estimators = trial.suggest_int("n_estimators", 50, 500)
+        max_depth = trial.suggest_int("max_depth", 5, 30)
+
+        params = {
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "random_state": 42,
+        }
+        model = random_forest_fair_training(x_train, y_train, **params)
+
+        # Predictions
+        y_pred = model.predict(x_valid)
+
+        # Calculate DPD
+        dpd = demographic_parity_difference(y_pred, sa_valid)
+
+        # Handle NaN values
+        if np.isnan(dpd):
+            return 1.0  # Large penalty for invalid trials
+
+        # Calculate accuracy
+        accuracy = accuracy_score(y_valid, y_pred)
+
+        return accuracy - dpd
+
+
+    # Create a study (maximize accuracy / minimize DPD)
+    study = optuna.create_study(direction="maximize")
     # Optimize the study against functions above
-    study.optimize(random_forest_fairness_objective, n_trials=50)
+    study.optimize(fair_random_forest_balanced_objective, n_trials=50)
 
     # Print the best parameters and score
     print("Best parameters:", study.best_params)

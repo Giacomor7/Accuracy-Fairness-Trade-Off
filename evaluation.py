@@ -2,6 +2,8 @@ import numpy as np
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 
+from fair_training import xgboost_fair_training, random_forest_fair_training
+
 
 def calculate_accuracy(predictions: np.ndarray, labels: np.ndarray) -> float:
     """
@@ -35,7 +37,9 @@ def demographic_parity_difference(y_pred, sa):
 
 
 def evaluation(train, test):
-    model = 'xgboost'
+    #['xgboost', 'rf']
+    model = 'rf'
+    fairness_aware = True
 
     y_train = train['label']
     y_test = test['label']
@@ -51,18 +55,32 @@ def evaluation(train, test):
         params = {
             "objective": "binary:logistic",
             "eval_metric": "logloss",
-            "eta": 0.2932425687600753,
-            "max_depth": 9,
+            "eta": 0.2908419486944403,
+            "max_depth": 4,
             "use_label_encoder": False,
         }
 
-        model = xgb.train(params, dtrain)
+        if fairness_aware:
+            model = xgboost_fair_training(train, y_train, params)
+            predictions = model.predict(test)
+        else:
+            model = xgb.train(params, dtrain)
+            predictions = model.predict(dtest) > 0.5  # Binary predictions
 
-        predictions = model.predict(dtest) > 0.5  # Binary predictions
+
     elif model == 'rf':
-        rf = RandomForestClassifier(n_estimators=100, random_state=420,
-                                    oob_score=True, max_depth=20)
-        rf.fit(train, y_train)
+        if fairness_aware:
+            params = {
+                "n_estimators": 286,
+                "max_depth": 10,
+                "random_state": 42,
+            }
+
+            rf = random_forest_fair_training(train, y_train, **params)
+        else:
+            rf = RandomForestClassifier(n_estimators=100, random_state=420,
+                                        oob_score=True, max_depth=20)
+            rf.fit(train, y_train)
 
         predictions = rf.predict(test)
     accuracy = calculate_accuracy(predictions, y_test)
@@ -71,4 +89,39 @@ def evaluation(train, test):
 
     print(f"Accuracy: {accuracy}. DPD: {dpd}")
 
+"""
+Best hyperparameters:
+
+Tuned for accuracy:
+XGB:
+Best parameters: {'eta': 0.12355187904055383, 'max_depth': 10}
+RF:
+Best parameters: {'n_estimators': 153, 'max_depth': 13}
+
+For fairness:
+XGB:
+Best parameters: {'eta': 0.2932425687600753, 'max_depth': 9}
+RF:
+Best parameters: {'n_estimators': 100, 'max_depth': 20}
+
+Fair models (after reweighing):
+
+Tuned for accuracy:
+XGB:
+Best parameters: {'eta': 0.07624482588186494, 'max_depth': 10}
+RF:
+Best parameters: {'n_estimators': 397, 'max_depth': 18}
+
+Tuned for fairness:
+RF:
+Best parameters: {'n_estimators': 354, 'max_depth': 9}
+XGB:
+Best parameters: {'eta': 0.016117651313141638, 'max_depth': 8}
+
+Tuned for balance:
+XGB:
+Best parameters: {'eta': 0.2908419486944403, 'max_depth': 4}
+RF:
+Best parameters: {'n_estimators': 286, 'max_depth': 10}
+"""
 

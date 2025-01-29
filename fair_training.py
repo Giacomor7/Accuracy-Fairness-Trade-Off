@@ -38,7 +38,7 @@ def calculate_sample_weights(dis, y):
     return np.array(
         [sample_weight_classes[category] for category in categories])
 
-def xgboost_fair_training(x, y, sk=False, **xgb_params):
+def xgboost_fair_training(x, y, sk=False, dvalid=None, **xgb_params):
     dis = x['DIS']
 
     sample_weights = calculate_sample_weights(dis, y)
@@ -58,8 +58,13 @@ def xgboost_fair_training(x, y, sk=False, **xgb_params):
         model = XGBClassifier(**default_params)
         model.fit(x,y, sample_weight=sample_weights)
     else:
-        model = xgb.train(params=default_params, dtrain=dtrain,
-                          num_boost_round=100)
+        if dvalid is None:
+            model = xgb.train(params=default_params, dtrain=dtrain,
+                              num_boost_round=100)
+        else:
+            model = xgb.train(default_params, dtrain, num_boost_round=100,
+                              evals=[(dvalid, "validation")],
+                              early_stopping_rounds=10, verbose_eval=False)
 
     return model
 
