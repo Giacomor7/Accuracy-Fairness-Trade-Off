@@ -38,8 +38,12 @@ def calculate_sample_weights(dis, y):
     return np.array(
         [sample_weight_classes[category] for category in categories])
 
-def xgboost_fair_training(x, y, sk=False, dvalid=None, **xgb_params):
-    dis = x['DIS']
+def xgboost_fair_training(x, y, sensitive_attribute=None, sk=False,
+                              dvalid=None, **xgb_params):
+    if sensitive_attribute is None:
+        dis = x['DIS']
+    else:
+        dis = sensitive_attribute
 
     sample_weights = calculate_sample_weights(dis, y)
 
@@ -68,8 +72,11 @@ def xgboost_fair_training(x, y, sk=False, dvalid=None, **xgb_params):
 
     return model
 
-def random_forest_fair_training(x, y, **rf_params):
-    dis = x['DIS']
+def random_forest_fair_training(x, y, sensitive_attribute=None, **rf_params):
+    if sensitive_attribute is None:
+        dis = x['DIS']
+    else:
+        dis = sensitive_attribute
 
     sample_weights = calculate_sample_weights(dis, y)
 

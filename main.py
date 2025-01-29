@@ -13,7 +13,7 @@ from train_test_split import split_data
 if __name__ == "__main__":
     # ['get_baseline', 'hyperparameter_tuning', 'evaluation',
     # 'find_correlations']
-    task = 'find_correlations'
+    task = 'evaluation'
 
     ACSEmployment = folktables.BasicProblem(
         features=[
